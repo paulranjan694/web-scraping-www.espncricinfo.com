@@ -3,6 +3,7 @@ const chalk = require("chalk");
 const cheerio = require("cheerio");
 
 const fs = require("fs");
+const getMatch = require("./match");
 
 function getAllMatches(link){
     request(link, cb);
@@ -28,7 +29,8 @@ function parseData(html){
     for(let i=0;i<allATags.length;i++){
         let links = ch(allATags[i]).attr("href");
         let completeLink = "https://www.espncricinfo.com"+ links
-        console.log(completeLink);
+        // console.log(completeLink);
+        getMatch(completeLink);
     }
    
 }
