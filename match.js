@@ -32,7 +32,7 @@ function parseData(html){
         teamName = teamName.split("INNINGS")[0].trim();
         console.log(teamName); 
         let allTrs = ch(bothInnings[i]).find(".table.batsman tbody tr")
-        for(let j=0;j<allTrs.length;j++){
+        for(let j=0;j<allTrs.length-1;j++){
             let allTds = ch(allTrs[j]).find("td");
             if(allTds.length>1){
                 let batsman = ch(allTds[0]).find("a").text();
@@ -42,14 +42,87 @@ function parseData(html){
                 let sixes = ch(allTds[6]).text();
                 let strikeRates = ch(allTds[7]).text();
 
-                console.log(`Batsman = ${batsman} Runs = ${runs} Balls = ${balls} Fours = ${fours} Sixes = ${sixes} SR = ${strikeRates}`);
+                processDetails(teamName,batsman, runs, balls, fours, sixes, strikeRates);
+
+                // console.log(`Batsman = ${batsman} Runs = ${runs} Balls = ${balls} Fours = ${fours} Sixes = ${sixes} SR = ${strikeRates}`);
             }
         }
       
     }
-    console.log("*************************************************************************************************************************************");
+    // console.log("*************************************************************************************************************************************");
     // fs.writeFileSync("./F_bothMatch.html", ch(bothInnings[0]).html);
     // fs.writeFileSync("./S_bothMatch.html", bothInnings[1]);
+}
+
+
+function checkTeamFolder(teamName){
+    // check team folder exists or not
+    return fs.existsSync("data/"+teamName);
+}
+
+function createTeamFolder(teamName){
+    // teamName = India
+    fs.mkdirSync("data/"+teamName);
+}
+
+function checkBatsmanFile(teamName, batsman){
+    // teamName = India
+    // batsman = MSDhoni
+    // batsman path = India/MSDhoni.json
+    let batsmanPath = `data/${teamName}/${batsman}.json`;
+    return fs.existsSync(batsmanPath);
+}
+
+function updateBatsmanFile(teamName,batsman, runs, balls, fours, sixes, strikeRates){
+    let batsmanPath = `data/${teamName}/${batsman}.json`;
+    let batsmanFile = fs.readFileSync(batsmanPath);
+    batsmanFile=JSON.parse(batsmanFile);
+    let innings = {
+        Runs : runs,
+        Balls : balls,
+        Fours : fours,
+        Sixes : sixes,
+        SR : strikeRates
+    };
+
+    batsmanFile.push(innings);
+    batsmanFile = JSON.stringify(batsmanFile);
+    fs.writeFileSync(batsmanPath, batsmanFile);
+
+}
+
+function craeteBatsmanFile(teamName,batsman, runs, balls, fours, sixes, strikeRates){
+    let batsmanPath = `data/${teamName}/${batsman}.json`;
+    let batsmanFile=[];
+    let innings = {
+        Runs : runs,
+        Balls : balls,
+        Fours : fours,
+        Sixes : sixes,
+        SR : strikeRates
+    };
+
+    batsmanFile.push(innings);
+    batsmanFile = JSON.stringify(batsmanFile);
+    fs.writeFileSync(batsmanPath, batsmanFile);
+}
+
+
+
+function processDetails(teamName,batsman, runs, balls, fours, sixes, strikeRates){
+    // check if Team folder exists?
+    let isTeamFolder = checkTeamFolder(teamName);
+    if(isTeamFolder){
+        let isBatsman = checkBatsmanFile(teamName, batsman);
+        if(isBatsman){
+            updateBatsmanFile(teamName,batsman, runs, balls, fours, sixes, strikeRates);
+        }else{
+            craeteBatsmanFile(teamName,batsman, runs, balls, fours, sixes, strikeRates);
+        }
+    }else{
+        createTeamFolder(teamName);
+        craeteBatsmanFile(teamName,batsman, runs, balls, fours, sixes, strikeRates);
+    }
 }
 
 module.exports = getMatch;
